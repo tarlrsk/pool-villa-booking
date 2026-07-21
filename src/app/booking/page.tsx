@@ -101,7 +101,7 @@ function BookingForm() {
             onChange={e => setPhone(e.target.value)}
             required
             placeholder="08X-XXX-XXXX"
-            className="w-full border border-gray-300 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-400"
+            className="w-full border border-gray-300 rounded-xl px-4 py-3 text-base focus:outline-none focus:ring-2 focus:ring-indigo-400"
           />
         </div>
 
@@ -110,7 +110,7 @@ function BookingForm() {
           <select
             value={guests}
             onChange={e => setGuests(parseInt(e.target.value))}
-            className="w-full border border-gray-300 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-400"
+            className="w-full border border-gray-300 rounded-xl px-4 py-3 text-base focus:outline-none focus:ring-2 focus:ring-indigo-400"
           >
             {[1, 2, 3, 4, 5, 6, 7, 8].map(n => (
               <option key={n} value={n}>{n} คน</option>
@@ -125,7 +125,7 @@ function BookingForm() {
             onChange={e => setNotes(e.target.value)}
             rows={3}
             placeholder="เช่น ต้องการเตียงเสริม, มาพร้อมสัตว์เลี้ยง..."
-            className="w-full border border-gray-300 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-400 resize-none"
+            className="w-full border border-gray-300 rounded-xl px-4 py-3 text-base focus:outline-none focus:ring-2 focus:ring-indigo-400 resize-none"
           />
         </div>
 
