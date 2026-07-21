@@ -12,7 +12,7 @@ const MAX_GUESTS = 8
 function BookingForm() {
   const router = useRouter()
   const params = useSearchParams()
-  const { liff, loggedIn } = useLiff()
+  const { liff, ready } = useLiff()
 
   const checkin = params.get('checkin') ?? ''
   const checkout = params.get('checkout') ?? ''
@@ -31,11 +31,6 @@ function BookingForm() {
     setLoading(true)
     try {
       const token = liff?.getIDToken()
-      if (!token) {
-        setError('ไม่สามารถยืนยันตัวตนได้ กรุณาเปิดผ่าน LINE')
-        setLoading(false)
-        return
-      }
       const res = await fetch('/api/bookings', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
@@ -50,8 +45,6 @@ function BookingForm() {
       setLoading(false)
     }
   }
-
-  if (!loggedIn && process.env.NEXT_PUBLIC_LIFF_ID) return <LoadingScreen />
 
   return (
     <PageShell>

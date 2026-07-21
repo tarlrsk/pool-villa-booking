@@ -19,7 +19,7 @@ export default function MyBookingsPage() {
   useEffect(() => {
     if (!ready) return
     if (!loggedIn && process.env.NEXT_PUBLIC_LIFF_ID) return
-    const token = liff?.getIDToken() ?? 'dev-token'
+    const token = liff?.getIDToken()
     fetch('/api/user/bookings', { headers: { Authorization: `Bearer ${token}` } })
       .then(r => r.json())
       .then(d => setBookings(d.bookings ?? []))
