@@ -2,10 +2,12 @@
 
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
-import BookingCard from '@/components/BookingCard'
+import { CalendarX2 } from 'lucide-react'
 import { useLiff } from '../LiffProvider'
 import { Booking } from '@/lib/types'
-import { ChevronLeft, CalendarX2 } from 'lucide-react'
+import BookingCard from '@/components/BookingCard'
+import PageShell from '@/components/PageShell'
+import PageHeader from '@/components/PageHeader'
 import LoadingScreen from '@/components/LoadingScreen'
 
 export default function MyBookingsPage() {
@@ -17,11 +19,8 @@ export default function MyBookingsPage() {
   useEffect(() => {
     if (!ready) return
     if (!loggedIn && process.env.NEXT_PUBLIC_LIFF_ID) return
-
     const token = liff?.getIDToken() ?? 'dev-token'
-    fetch('/api/user/bookings', {
-      headers: { Authorization: `Bearer ${token}` },
-    })
+    fetch('/api/user/bookings', { headers: { Authorization: `Bearer ${token}` } })
       .then(r => r.json())
       .then(d => setBookings(d.bookings ?? []))
       .catch(() => {})
@@ -33,23 +32,10 @@ export default function MyBookingsPage() {
   const sorted = [...bookings].sort((a, b) => b.createdAt.localeCompare(a.createdAt))
 
   return (
-    <div className="min-h-screen bg-white md:bg-gray-100 md:flex md:justify-center md:py-10">
-    <main className="w-full md:max-w-md md:rounded-3xl md:shadow-2xl md:bg-white md:overflow-hidden">
-
-      {/* Header — matches main page */}
-      <div className="flex items-center justify-between px-4 pt-4 pb-3 border-b border-gray-100">
-        <button
-          onClick={() => router.push('/')}
-          className="text-gray-600 p-1 -ml-1 hover:text-gray-900 transition active:scale-90"
-        >
-          <ChevronLeft size={24} />
-        </button>
-        <h1 className="font-semibold text-gray-800">การจองของฉัน</h1>
-        <div className="w-8" />
-      </div>
-
-      {/* Content */}
+    <PageShell>
+      <PageHeader title="การจองของฉัน" onBack={() => router.push('/')} />
       <div className="px-4 py-6 space-y-4">
+
         {loading && (
           <div className="flex flex-col items-center gap-3 py-16">
             <div className="w-8 h-8 border-4 border-indigo-200 border-t-indigo-600 rounded-full animate-spin" />
@@ -61,20 +47,15 @@ export default function MyBookingsPage() {
           <div className="text-center py-16 space-y-3">
             <CalendarX2 size={56} className="text-gray-300 mx-auto" />
             <p className="text-gray-500">ยังไม่มีการจอง</p>
-            <button
-              onClick={() => router.push('/')}
-              className="text-indigo-600 text-sm font-medium"
-            >
+            <button onClick={() => router.push('/')} className="text-indigo-600 text-sm font-medium">
               จองเลย →
             </button>
           </div>
         )}
 
-        {sorted.map(b => (
-          <BookingCard key={b.id} booking={b} />
-        ))}
+        {sorted.map(b => <BookingCard key={b.id} booking={b} />)}
+
       </div>
-    </main>
-    </div>
+    </PageShell>
   )
 }

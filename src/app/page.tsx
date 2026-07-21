@@ -6,10 +6,7 @@ import BookingCalendar, { DayRate, CustomPeriod, PriceBreakdown, dateToStr, loca
 import { useLiff } from './LiffProvider'
 import { CalendarDays, RotateCcw } from 'lucide-react'
 import LoadingScreen from '@/components/LoadingScreen'
-
-const DAY_SHORT = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
-const MONTH_SHORT = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
-const DAY_NAMES = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday']
+import { DAY_HEADERS, fmtDayShort, fmtDayLong, fmtMonthShort } from '@/lib/date-format'
 
 interface Selection {
   checkin: string
@@ -22,7 +19,7 @@ interface Selection {
 function formatHeaderDate(dateStr: string | null): string {
   if (!dateStr) return '—'
   const d = localDate(dateStr)
-  return `${DAY_SHORT[d.getDay()]}, ${d.getDate()} ${MONTH_SHORT[d.getMonth()]}`
+  return `${fmtDayShort(d)}, ${d.getDate()} ${fmtMonthShort(d)}`
 }
 
 export default function HomePage() {
@@ -64,13 +61,13 @@ export default function HomePage() {
     const custom = customPeriods.find(p => dateStr >= p.startDate && dateStr < p.endDate)
     if (custom) return custom.price
     const d = localDate(dateStr)
-    return dayRateMap.get(DAY_NAMES[d.getDay()]) ?? 0
+    return dayRateMap.get(fmtDayLong(d)) ?? 0
   }
 
   function getDescriptionForDate(dateStr: string): string {
     const custom = customPeriods.find(p => dateStr >= p.startDate && dateStr < p.endDate)
     if (custom) return custom.description
-    return DAY_NAMES[localDate(dateStr).getDay()]
+    return fmtDayLong(localDate(dateStr))
   }
 
   function handleDateClick(dateStr: string) {
@@ -146,7 +143,7 @@ export default function HomePage() {
 
         {/* Day labels */}
         <div className="grid grid-cols-7 px-1 pb-2">
-          {DAY_SHORT.map(d => (
+          {DAY_HEADERS.map(d => (
             <div key={d} className="text-center text-xs text-gray-400 font-medium">{d}</div>
           ))}
         </div>

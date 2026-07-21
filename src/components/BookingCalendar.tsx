@@ -1,10 +1,6 @@
 'use client'
 
-const DAY_NAMES = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday']
-const MONTH_NAMES = [
-  'January', 'February', 'March', 'April', 'May', 'June',
-  'July', 'August', 'September', 'October', 'November', 'December',
-]
+import { fmtDayLong, fmtMonthLong } from '@/lib/date-format'
 
 export interface DayRate { day: string; price: number }
 export interface CustomPeriod { startDate: string; endDate: string; price: number; description: string }
@@ -45,7 +41,8 @@ export default function BookingCalendar({
     const custom = customPeriods.find(p => dateStr >= p.startDate && dateStr < p.endDate)
     if (custom) return { price: custom.price, description: custom.description }
     const d = localDate(dateStr)
-    return { price: dayRateMap.get(DAY_NAMES[d.getDay()]) ?? 0, description: DAY_NAMES[d.getDay()] }
+    const dayName = fmtDayLong(d)
+    return { price: dayRateMap.get(dayName) ?? 0, description: dayName }
   }
 
   function isDisabled(dateStr: string) {
@@ -143,7 +140,7 @@ export default function BookingCalendar({
     return (
       <div key={`${year}-${month}`} className="mb-6">
         <p className="text-center text-sm font-semibold text-gray-500 py-3">
-          {MONTH_NAMES[month]} {year}
+          {fmtMonthLong(monthDate)} {year}
         </p>
         <div className="grid grid-cols-7">{cells}</div>
       </div>
