@@ -188,7 +188,7 @@ export default function HomePage() {
               )
             }
             disabled={!selection}
-            className="flex-1 bg-indigo-600 disabled:bg-indigo-200 text-white py-4 rounded-2xl font-semibold text-base transition"
+            className="flex-1 bg-indigo-600 text-white py-4 rounded-2xl font-semibold text-base transition"
           >
             {selection
               ? `ตกลง (${selection.nights} คืน · ฿${selection.total.toLocaleString()})`
