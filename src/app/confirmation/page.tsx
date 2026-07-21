@@ -9,7 +9,8 @@ function ConfirmationContent() {
   const bookingId = params.get('bookingId') ?? ''
 
   return (
-    <main className="max-w-lg mx-auto px-4 py-16 text-center space-y-6">
+    <div className="min-h-screen bg-white md:bg-gray-100 md:flex md:justify-center md:py-10">
+    <main className="w-full md:max-w-md md:rounded-3xl md:shadow-2xl md:bg-white md:overflow-hidden px-4 py-16 text-center space-y-6">
       <div className="text-6xl">🎉</div>
       <div className="space-y-2">
         <h1 className="text-2xl font-bold text-gray-800">จองสำเร็จแล้ว!</h1>
@@ -40,6 +41,7 @@ function ConfirmationContent() {
         </button>
       </div>
     </main>
+    </div>
   )
 }
 

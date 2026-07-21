@@ -2,132 +2,202 @@
 
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
-import DateRangePicker from '@/components/DateRangePicker'
+import BookingCalendar, { DayRate, CustomPeriod, PriceBreakdown, dateToStr, localDate } from '@/components/BookingCalendar'
 import { useLiff } from './LiffProvider'
 
-interface PriceResult {
-  available: boolean
-  reason?: string
-  price?: {
-    totalPrice: number
-    nights: number
-    breakdown: { date: string; price: number; description?: string }[]
-  }
+const DAY_SHORT = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
+const MONTH_SHORT = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
+const DAY_NAMES = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday']
+
+interface Selection {
+  checkin: string
+  checkout: string
+  total: number
+  nights: number
+  breakdown: PriceBreakdown[]
+}
+
+function formatHeaderDate(dateStr: string | null): string {
+  if (!dateStr) return '—'
+  const d = localDate(dateStr)
+  return `${DAY_SHORT[d.getDay()]}, ${d.getDate()} ${MONTH_SHORT[d.getMonth()]}`
 }
 
 export default function HomePage() {
   const router = useRouter()
   const { ready } = useLiff()
-  const [checkin, setCheckin] = useState<Date | null>(null)
-  const [checkout, setCheckout] = useState<Date | null>(null)
+
+  const [loading, setLoading] = useState(true)
   const [unavailableDates, setUnavailableDates] = useState<string[]>([])
-  const [checking, setChecking] = useState(false)
-  const [result, setResult] = useState<PriceResult | null>(null)
+  const [dayRates, setDayRates] = useState<DayRate[]>([])
+  const [customPeriods, setCustomPeriods] = useState<CustomPeriod[]>([])
+
+  const [start, setStart] = useState<string | null>(null)
+  const [end, setEnd] = useState<string | null>(null)
+  const [hover, setHover] = useState<string | null>(null)
+  const [selection, setSelection] = useState<Selection | null>(null)
+
+  const unavailableSet = new Set(unavailableDates)
+  const dayRateMap = new Map(dayRates.map(r => [r.day, r.price]))
 
   useEffect(() => {
     const today = new Date()
-    const from = today.toISOString().split('T')[0]
+    const from = dateToStr(today)
     const future = new Date(today)
-    future.setMonth(future.getMonth() + 3)
-    const to = future.toISOString().split('T')[0]
-    fetch(`/api/availability?from=${from}&to=${to}`)
+    future.setMonth(future.getMonth() + 7)
+    const to = dateToStr(future)
+
+    fetch(`/api/pricing-data?from=${from}&to=${to}`)
       .then(r => r.json())
-      .then(d => setUnavailableDates(d.unavailableDates ?? []))
+      .then(d => {
+        setUnavailableDates(d.unavailableDates ?? [])
+        setDayRates(d.dayRates ?? [])
+        setCustomPeriods(d.customPeriods ?? [])
+      })
       .catch(() => {})
+      .finally(() => setLoading(false))
   }, [])
 
-  async function handleRangeChange(start: Date | null, end: Date | null) {
-    setCheckin(start)
-    setCheckout(end)
-    setResult(null)
+  function getPriceForDate(dateStr: string): number {
+    const custom = customPeriods.find(p => dateStr >= p.startDate && dateStr < p.endDate)
+    if (custom) return custom.price
+    const d = localDate(dateStr)
+    return dayRateMap.get(DAY_NAMES[d.getDay()]) ?? 0
+  }
 
-    if (!start || !end) return
+  function getDescriptionForDate(dateStr: string): string {
+    const custom = customPeriods.find(p => dateStr >= p.startDate && dateStr < p.endDate)
+    if (custom) return custom.description
+    return DAY_NAMES[localDate(dateStr).getDay()]
+  }
 
-    const checkinStr = start.toISOString().split('T')[0]
-    const checkoutStr = end.toISOString().split('T')[0]
-
-    setChecking(true)
-    try {
-      const res = await fetch(`/api/availability?checkin=${checkinStr}&checkout=${checkoutStr}`)
-      const data = await res.json()
-      setResult(data)
-    } finally {
-      setChecking(false)
+  function handleDateClick(dateStr: string) {
+    if (!start || end) {
+      setStart(dateStr); setEnd(null); setHover(null); setSelection(null); return
     }
+
+    const lo = start <= dateStr ? start : dateStr
+    const hi = start <= dateStr ? dateStr : start
+
+    if (lo === hi) { setStart(dateStr); setEnd(null); setSelection(null); return }
+
+    // Check for blocked dates in range
+    const cur = localDate(lo)
+    cur.setDate(cur.getDate() + 1)
+    while (cur < localDate(hi)) {
+      if (unavailableSet.has(dateToStr(cur))) {
+        setStart(dateStr); setEnd(null); setSelection(null); return
+      }
+      cur.setDate(cur.getDate() + 1)
+    }
+
+    setStart(lo); setEnd(hi)
+
+    // Build breakdown
+    const breakdown: PriceBreakdown[] = []
+    const c = localDate(lo)
+    while (c < localDate(hi)) {
+      const s = dateToStr(c)
+      breakdown.push({ date: s, price: getPriceForDate(s), description: getDescriptionForDate(s) })
+      c.setDate(c.getDate() + 1)
+    }
+    const total = breakdown.reduce((sum, b) => sum + b.price, 0)
+    setSelection({ checkin: lo, checkout: hi, total, nights: breakdown.length, breakdown })
   }
 
-  function handleBook() {
-    if (!checkin || !checkout || !result?.available) return
-    const checkinStr = checkin.toISOString().split('T')[0]
-    const checkoutStr = checkout.toISOString().split('T')[0]
-    router.push(
-      `/booking?checkin=${checkinStr}&checkout=${checkoutStr}&total=${result.price?.totalPrice}&nights=${result.price?.nights}`
-    )
-  }
-
-  if (!ready) {
+  if (!ready || loading) {
     return (
-      <div className="flex items-center justify-center min-h-screen">
-        <p className="text-gray-400">กำลังโหลด...</p>
+      <div className="flex flex-col items-center justify-center min-h-screen gap-3 bg-white">
+        <div className="w-8 h-8 border-4 border-indigo-200 border-t-indigo-600 rounded-full animate-spin" />
+        <p className="text-gray-400 text-sm">กำลังโหลด...</p>
       </div>
     )
   }
 
   return (
-    <main className="max-w-lg mx-auto px-4 py-8 space-y-6">
-      <div className="text-center space-y-1">
-        <h1 className="text-2xl font-bold text-gray-800">Pool Villa</h1>
-        <p className="text-gray-500 text-sm">เลือกวันที่ต้องการเข้าพัก</p>
-      </div>
+    <div className="md:bg-gray-100 md:min-h-screen md:flex md:items-start md:justify-center md:py-10">
+    <div className="flex flex-col h-screen md:h-auto md:max-h-[90vh] md:w-full md:max-w-md md:rounded-3xl md:shadow-2xl md:overflow-hidden bg-white overflow-hidden">
 
-      <DateRangePicker onRangeChange={handleRangeChange} unavailableDates={unavailableDates} />
-
-      {checking && (
-        <p className="text-center text-sm text-gray-400">กำลังตรวจสอบ...</p>
-      )}
-
-      {result && !checking && (
-        <div className={`rounded-2xl p-4 ${result.available ? 'bg-green-50 border border-green-200' : 'bg-red-50 border border-red-200'}`}>
-          {result.available && result.price ? (
-            <div className="space-y-3">
-              <div className="flex justify-between items-center">
-                <p className="text-green-700 font-medium">✅ ว่างสำหรับช่วงนี้</p>
-                <p className="text-sm text-gray-500">{result.price.nights} คืน</p>
-              </div>
-              <div className="space-y-1">
-                {result.price.breakdown.map(b => (
-                  <div key={b.date} className="flex justify-between text-sm text-gray-600">
-                    <span>{b.date} ({b.description})</span>
-                    <span>฿{b.price.toLocaleString()}</span>
-                  </div>
-                ))}
-              </div>
-              <div className="border-t pt-2 flex justify-between font-bold">
-                <span>รวมทั้งหมด</span>
-                <span className="text-indigo-600">฿{result.price.totalPrice.toLocaleString()}</span>
-              </div>
-            </div>
-          ) : (
-            <p className="text-red-700">❌ {result.reason ?? 'ไม่ว่างในช่วงนี้'}</p>
-          )}
+      {/* ── Fixed Header ── */}
+      <div className="shrink-0 bg-white z-10 border-b border-gray-100">
+        {/* Title */}
+        <div className="flex items-center justify-between px-4 pt-4 pb-2">
+          <button
+            onClick={() => router.push('/my-bookings')}
+            className="text-sm text-gray-500 border border-gray-200 rounded-lg px-3 py-1.5 hover:bg-gray-50 transition"
+          >
+            การจอง
+          </button>
+          <h1 className="font-semibold text-gray-800">Pool Villa</h1>
+          <button
+            onClick={() => { setStart(null); setEnd(null); setSelection(null) }}
+            className="text-sm text-indigo-500 font-medium"
+          >
+            รีเซ็ต
+          </button>
         </div>
-      )}
 
-      <div className="flex gap-3">
+        {/* Check-in / Check-out */}
+        <div className="flex items-center px-6 pb-3 gap-3">
+          <div className="flex-1 text-center">
+            <p className="text-[11px] text-gray-400 font-medium uppercase tracking-wide">เช็คอิน</p>
+            <p className={`text-lg font-bold mt-0.5 ${start ? 'text-gray-900' : 'text-gray-300'}`}>
+              {formatHeaderDate(start)}
+            </p>
+          </div>
+          <div className="text-gray-300 text-lg">→</div>
+          <div className="flex-1 text-center">
+            <p className="text-[11px] text-gray-400 font-medium uppercase tracking-wide">เช็คเอาท์</p>
+            <p className={`text-lg font-bold mt-0.5 ${end ? 'text-gray-900' : 'text-gray-300'}`}>
+              {formatHeaderDate(end)}
+            </p>
+          </div>
+        </div>
+
+        {/* Day labels */}
+        <div className="grid grid-cols-7 px-1 pb-2">
+          {DAY_SHORT.map(d => (
+            <div key={d} className="text-center text-xs text-gray-400 font-medium">{d}</div>
+          ))}
+        </div>
+      </div>
+
+      {/* ── Scrollable Calendar ── */}
+      <div className="flex-1 overflow-y-auto">
+        <BookingCalendar
+          unavailableDates={unavailableDates}
+          dayRates={dayRates}
+          customPeriods={customPeriods}
+          start={start}
+          end={end}
+          hover={hover}
+          onDateClick={handleDateClick}
+          onDateHover={setHover}
+          monthCount={6}
+        />
+      </div>
+
+      {/* ── Fixed Footer ── */}
+      <div
+        className="shrink-0 bg-white border-t border-gray-100 px-4 pt-3 pb-8 md:pb-4"
+        style={{ paddingBottom: 'max(2rem, calc(env(safe-area-inset-bottom) + 0.75rem))' }}
+      >
         <button
-          onClick={handleBook}
-          disabled={!result?.available || checking}
-          className="flex-1 bg-indigo-600 text-white py-3 rounded-xl font-medium disabled:opacity-40 disabled:cursor-not-allowed hover:bg-indigo-700 transition"
+          onClick={() =>
+            selection &&
+            router.push(
+              `/booking?checkin=${selection.checkin}&checkout=${selection.checkout}&total=${selection.total}&nights=${selection.nights}`
+            )
+          }
+          disabled={!selection}
+          className="w-full bg-indigo-600 text-white py-4 rounded-2xl font-semibold text-base transition"
         >
-          จองเลย
-        </button>
-        <button
-          onClick={() => router.push('/my-bookings')}
-          className="px-4 py-3 border border-gray-300 rounded-xl text-gray-600 hover:bg-gray-50 transition text-sm"
-        >
-          การจองของฉัน
+          {selection
+            ? `ตกลง (${selection.nights} คืน · ฿${selection.total.toLocaleString()})`
+            : 'เลือกวันที่ก่อน'}
         </button>
       </div>
-    </main>
+    </div>
+    </div>
   )
 }

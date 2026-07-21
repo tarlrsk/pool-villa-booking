@@ -29,15 +29,22 @@ export default function LiffProvider({ children }: { children: React.ReactNode }
 
     import('@line/liff').then(async ({ default: liffLib }) => {
       await liffLib.init({ liffId })
+
+      // Only force login when running inside the LINE app
       if (!liffLib.isLoggedIn()) {
-        liffLib.login()
+        if (liffLib.isInClient()) {
+          liffLib.login()
+          return
+        }
+        // Browser/dev mode — show app without auth
+        setReady(true)
         return
       }
+
       setLiff(liffLib)
       setLoggedIn(true)
       setReady(true)
     }).catch(() => {
-      // Running outside LINE app (browser dev mode)
       setReady(true)
     })
   }, [])

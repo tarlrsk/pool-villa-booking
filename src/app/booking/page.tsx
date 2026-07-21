@@ -26,7 +26,12 @@ function BookingForm() {
     setLoading(true)
 
     try {
-      const token = liff?.getIDToken() ?? ''
+      const token = liff?.getIDToken()
+      if (!token) {
+        setError('ไม่สามารถยืนยันตัวตนได้ กรุณาเปิดผ่าน LINE')
+        setLoading(false)
+        return
+      }
       const res = await fetch('/api/bookings', {
         method: 'POST',
         headers: {
@@ -59,7 +64,8 @@ function BookingForm() {
   }
 
   return (
-    <main className="max-w-lg mx-auto px-4 py-8 space-y-6">
+    <div className="min-h-screen bg-white md:bg-gray-100 md:flex md:justify-center md:py-10">
+    <main className="w-full md:max-w-md md:rounded-3xl md:shadow-2xl md:bg-white md:overflow-hidden px-4 py-8 space-y-6">
       <button onClick={() => router.back()} className="text-indigo-600 text-sm">← ย้อนกลับ</button>
 
       <div className="space-y-1">
@@ -134,6 +140,7 @@ function BookingForm() {
         </button>
       </form>
     </main>
+    </div>
   )
 }
 

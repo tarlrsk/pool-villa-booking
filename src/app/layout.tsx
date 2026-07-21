@@ -8,6 +8,9 @@ const geist = Geist({ variable: '--font-geist-sans', subsets: ['latin'] })
 export const metadata: Metadata = {
   title: 'Pool Villa Booking',
   description: 'Book your pool villa stay',
+  other: {
+    'viewport': 'width=device-width, initial-scale=1, viewport-fit=cover',
+  },
 }
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
