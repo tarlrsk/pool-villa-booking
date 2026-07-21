@@ -26,7 +26,7 @@ function ConfirmationContent() {
 
         <div className="bg-gray-50 rounded-2xl p-4 text-sm text-gray-600">
           <p>หมายเลขการจอง</p>
-          <p className="font-mono font-bold text-gray-800 mt-1">{bookingId.slice(0, 8).toUpperCase()}</p>
+          <p className="font-mono font-bold text-gray-800 mt-1">{bookingId}</p>
         </div>
 
         <p className="text-sm text-gray-400">

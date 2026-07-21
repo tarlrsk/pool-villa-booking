@@ -28,7 +28,7 @@ export default function BookingCard({ booking }: Props) {
       <div className="flex justify-between items-start">
         <div>
           <p className="text-xs text-gray-400">หมายเลขการจอง</p>
-          <p className="text-sm font-mono text-gray-600">{booking.id.slice(0, 8)}...</p>
+          <p className="text-sm font-mono text-gray-600">{booking.id}</p>
         </div>
         <span className={`text-xs px-2 py-1 rounded-full font-medium ${STATUS_STYLES[booking.status]}`}>
           {STATUS_LABELS[booking.status]}

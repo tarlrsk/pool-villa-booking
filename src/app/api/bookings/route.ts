@@ -1,9 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { v4 as uuidv4 } from 'uuid'
 import { createBooking, checkAvailability } from '@/lib/google-sheets'
 import { calculatePrice } from '@/lib/pricing'
 import { verifyLineToken, extractBearerToken } from '@/lib/line-auth'
 import { sendBookingConfirmation } from '@/lib/line-notify'
+import { generateBookingId } from '@/lib/date-format'
 
 export async function POST(req: NextRequest) {
   const token = extractBearerToken(req.headers.get('authorization'))
@@ -35,7 +35,7 @@ export async function POST(req: NextRequest) {
   const price = await calculatePrice(checkin, checkout)
 
   const booking = await createBooking({
-    id: uuidv4(),
+    id: generateBookingId(),
     lineUserId: profile.userId,
     displayName: profile.displayName,
     phone,

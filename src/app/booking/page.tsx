@@ -112,9 +112,12 @@ function BookingForm() {
           <button
             type="submit"
             disabled={loading}
-            className="w-full bg-indigo-600 text-white py-3 rounded-xl font-medium disabled:opacity-50 hover:bg-indigo-700 transition"
+            className="w-full bg-indigo-600 text-white py-3 rounded-xl font-medium disabled:cursor-not-allowed hover:bg-indigo-700 transition flex items-center justify-center gap-2"
           >
-            {loading ? 'กำลังจอง...' : 'ยืนยันการจอง'}
+            {loading && (
+              <span className="w-4 h-4 border-2 border-white/40 border-t-white rounded-full animate-spin" />
+            )}
+            {loading ? 'กำลังดำเนินการ...' : 'ยืนยันการจอง'}
           </button>
         </form>
 
