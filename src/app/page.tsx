@@ -4,6 +4,8 @@ import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import BookingCalendar, { DayRate, CustomPeriod, PriceBreakdown, dateToStr, localDate } from '@/components/BookingCalendar'
 import { useLiff } from './LiffProvider'
+import { CalendarDays, RotateCcw } from 'lucide-react'
+import LoadingScreen from '@/components/LoadingScreen'
 
 const DAY_SHORT = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
 const MONTH_SHORT = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
@@ -105,14 +107,7 @@ export default function HomePage() {
     setSelection({ checkin: lo, checkout: hi, total, nights: breakdown.length, breakdown })
   }
 
-  if (!ready || loading) {
-    return (
-      <div className="flex flex-col items-center justify-center min-h-screen gap-3 bg-white">
-        <div className="w-8 h-8 border-4 border-indigo-200 border-t-indigo-600 rounded-full animate-spin" />
-        <p className="text-gray-400 text-sm">กำลังโหลด...</p>
-      </div>
-    )
-  }
+  if (!ready || loading) return <LoadingScreen />
 
   return (
     <div className="md:bg-gray-100 md:min-h-screen md:flex md:items-start md:justify-center md:py-10">
@@ -122,18 +117,13 @@ export default function HomePage() {
       <div className="shrink-0 bg-white z-10 border-b border-gray-100">
         {/* Title */}
         <div className="flex items-center justify-between px-4 pt-4 pb-2">
-          <button
-            onClick={() => router.push('/my-bookings')}
-            className="text-sm text-gray-500 border border-gray-200 rounded-lg px-3 py-1.5 hover:bg-gray-50 transition"
-          >
-            การจอง
-          </button>
           <h1 className="font-semibold text-gray-800">Pool Villa</h1>
           <button
-            onClick={() => { setStart(null); setEnd(null); setSelection(null) }}
-            className="text-sm text-indigo-500 font-medium"
+            onClick={() => router.push('/my-bookings')}
+            className="flex items-center gap-1.5 text-sm text-gray-500 border border-gray-200 rounded-lg px-3 py-1.5 hover:bg-gray-50 transition"
           >
-            รีเซ็ต
+            <CalendarDays size={15} />
+            การจองของฉัน
           </button>
         </div>
 
@@ -179,23 +169,32 @@ export default function HomePage() {
 
       {/* ── Fixed Footer ── */}
       <div
-        className="shrink-0 bg-white border-t border-gray-100 px-4 pt-3 pb-8 md:pb-4"
+        className="shrink-0 bg-white border-t border-gray-100 px-4 pt-3"
         style={{ paddingBottom: 'max(2rem, calc(env(safe-area-inset-bottom) + 0.75rem))' }}
       >
-        <button
-          onClick={() =>
-            selection &&
-            router.push(
-              `/booking?checkin=${selection.checkin}&checkout=${selection.checkout}&total=${selection.total}&nights=${selection.nights}`
-            )
-          }
-          disabled={!selection}
-          className="w-full bg-indigo-600 text-white py-4 rounded-2xl font-semibold text-base transition"
-        >
-          {selection
-            ? `ตกลง (${selection.nights} คืน · ฿${selection.total.toLocaleString()})`
-            : 'เลือกวันที่ก่อน'}
-        </button>
+        <div className="flex items-center gap-3">
+          <button
+            onClick={() => { setStart(null); setEnd(null); setSelection(null) }}
+            className="flex items-center gap-1 text-sm text-gray-400 font-medium py-4 px-1 shrink-0 hover:text-gray-600 transition"
+          >
+            <RotateCcw size={15} />
+            รีเซ็ต
+          </button>
+          <button
+            onClick={() =>
+              selection &&
+              router.push(
+                `/booking?checkin=${selection.checkin}&checkout=${selection.checkout}&total=${selection.total}&nights=${selection.nights}`
+              )
+            }
+            disabled={!selection}
+            className="flex-1 bg-indigo-600 disabled:bg-indigo-200 text-white py-4 rounded-2xl font-semibold text-base transition"
+          >
+            {selection
+              ? `ตกลง (${selection.nights} คืน · ฿${selection.total.toLocaleString()})`
+              : 'เลือกวันที่ก่อน'}
+          </button>
+        </div>
       </div>
     </div>
     </div>

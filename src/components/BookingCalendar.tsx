@@ -94,13 +94,13 @@ export default function BookingCalendar({
         : price > 0 ? String(price) : ''
 
       const leftBg = inRange || isEndDate
-      const rightBg = inRange || isStartDate
+      const rightBg = inRange || (isStartDate && !!rangeEnd)
 
       cells.push(
         <div key={dateStr} className="relative flex justify-center items-center h-14">
           {/* range strip */}
           {(leftBg || rightBg) && (
-            <div className="absolute inset-0 flex pointer-events-none">
+            <div className="absolute inset-x-0 top-1/2 -translate-y-1/2 h-11 flex pointer-events-none">
               <div className={`flex-1 ${leftBg ? 'bg-indigo-50' : ''}`} />
               <div className={`flex-1 ${rightBg ? 'bg-indigo-50' : ''}`} />
             </div>

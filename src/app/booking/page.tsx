@@ -3,6 +3,8 @@
 import { useState, Suspense } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { useLiff } from '../LiffProvider'
+import { ChevronLeft } from 'lucide-react'
+import LoadingScreen from '@/components/LoadingScreen'
 
 const MAX_GUESTS = 8
 
@@ -57,23 +59,24 @@ function BookingForm() {
     }
   }
 
-  if (!loggedIn && process.env.NEXT_PUBLIC_LIFF_ID) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <p className="text-gray-400">กำลังเข้าสู่ระบบ LINE...</p>
-      </div>
-    )
-  }
+  if (!loggedIn && process.env.NEXT_PUBLIC_LIFF_ID) return <LoadingScreen />
 
   return (
     <div className="min-h-screen bg-white md:bg-gray-100 md:flex md:justify-center md:py-10">
-    <main className="w-full md:max-w-md md:rounded-3xl md:shadow-2xl md:bg-white md:overflow-hidden px-4 py-8 space-y-6">
-      <button onClick={() => router.back()} className="text-indigo-600 text-sm">← ย้อนกลับ</button>
+    <main className="w-full md:max-w-md md:rounded-3xl md:shadow-2xl md:bg-white md:overflow-hidden">
 
-      <div className="space-y-1">
-        <h1 className="text-xl font-bold text-gray-800">ข้อมูลการจอง</h1>
-        <p className="text-sm text-gray-500">กรอกข้อมูลเพื่อยืนยันการจอง</p>
+      <div className="flex items-center justify-between px-4 pt-4 pb-3 border-b border-gray-100">
+        <button
+          onClick={() => router.back()}
+          className="text-gray-600 p-1 -ml-1 hover:text-gray-900 transition active:scale-90"
+        >
+          <ChevronLeft size={24} />
+        </button>
+        <h1 className="font-semibold text-gray-800">ข้อมูลการจอง</h1>
+        <div className="w-8" />
       </div>
+
+      <div className="px-4 py-6 space-y-6">
 
       <div className="bg-indigo-50 rounded-2xl p-4 space-y-1">
         <div className="flex justify-between text-sm">
@@ -141,6 +144,7 @@ function BookingForm() {
           {loading ? 'กำลังจอง...' : 'ยืนยันการจอง'}
         </button>
       </form>
+      </div>
     </main>
     </div>
   )
@@ -148,7 +152,7 @@ function BookingForm() {
 
 export default function BookingPage() {
   return (
-    <Suspense fallback={<div className="flex items-center justify-center min-h-screen"><p className="text-gray-400">กำลังโหลด...</p></div>}>
+    <Suspense fallback={<LoadingScreen />}>
       <BookingForm />
     </Suspense>
   )
