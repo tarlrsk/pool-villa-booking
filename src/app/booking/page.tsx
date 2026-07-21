@@ -4,6 +4,8 @@ import { useState, Suspense } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { useLiff } from '../LiffProvider'
 
+const MAX_GUESTS = 8
+
 function BookingForm() {
   const router = useRouter()
   const params = useSearchParams()
@@ -112,7 +114,7 @@ function BookingForm() {
             onChange={e => setGuests(parseInt(e.target.value))}
             className="w-full border border-gray-300 rounded-xl px-4 py-3 text-base focus:outline-none focus:ring-2 focus:ring-indigo-400"
           >
-            {[1, 2, 3, 4, 5, 6, 7, 8].map(n => (
+            {Array.from({ length: MAX_GUESTS }, (_, i) => i + 1).map(n => (
               <option key={n} value={n}>{n} คน</option>
             ))}
           </select>
