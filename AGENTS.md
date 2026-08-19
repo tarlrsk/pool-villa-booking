@@ -1,5 +1,3 @@
-<!-- BEGIN:nextjs-agent-rules -->
-# This is NOT the Next.js you know
+# De'Day Pool Villa — customer frontend
 
-This version has breaking changes — APIs, conventions, and file structure may all differ from your training data. Read the relevant guide in `node_modules/next/dist/docs/` before writing any code. Heed deprecation notices.
-<!-- END:nextjs-agent-rules -->
+This repo was rebuilt from Next.js to a plain React + Vite SPA. There is no `next` dependency and no `/api` routes here anymore — all data comes from the separate Go backend at `../deday-pool-villa-backend`. See `README.md` for setup.

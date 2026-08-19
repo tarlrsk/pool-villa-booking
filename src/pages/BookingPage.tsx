@@ -1,18 +1,16 @@
-'use client'
-
-import { useState, Suspense } from 'react'
-import { useRouter, useSearchParams } from 'next/navigation'
-import { useLiff } from '../LiffProvider'
+import { useState } from 'react'
+import { useNavigate, useSearchParams } from 'react-router-dom'
+import { useLiff } from '@/providers/LiffProvider'
 import PageShell from '@/components/PageShell'
 import PageHeader from '@/components/PageHeader'
-import LoadingScreen from '@/components/LoadingScreen'
+import { apiUrl } from '@/lib/api'
 
 const MAX_GUESTS = 8
 
-function BookingForm() {
-  const router = useRouter()
-  const params = useSearchParams()
-  const { liff, ready } = useLiff()
+export default function BookingPage() {
+  const navigate = useNavigate()
+  const [params] = useSearchParams()
+  const { liff } = useLiff()
 
   const checkin = params.get('checkin') ?? ''
   const checkout = params.get('checkout') ?? ''
@@ -31,14 +29,14 @@ function BookingForm() {
     setLoading(true)
     try {
       const token = liff?.getIDToken()
-      const res = await fetch('/api/bookings', {
+      const res = await fetch(apiUrl('/api/bookings'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
         body: JSON.stringify({ phone, checkin, checkout, guests, notes }),
       })
       const data = await res.json()
       if (!res.ok) { setError(data.error ?? 'เกิดข้อผิดพลาด'); return }
-      router.push(`/confirmation?bookingId=${data.booking.id}`)
+      navigate(`/confirmation?bookingId=${data.booking.id}`)
     } catch {
       setError('เกิดข้อผิดพลาด กรุณาลองใหม่')
     } finally {
@@ -48,7 +46,7 @@ function BookingForm() {
 
   return (
     <PageShell>
-      <PageHeader title="ข้อมูลการจอง" onBack={() => router.back()} />
+      <PageHeader title="ข้อมูลการจอง" onBack={() => navigate(-1)} />
       <div className="px-4 py-6 space-y-6">
 
         <div className="bg-indigo-50 rounded-2xl p-4 space-y-1">
@@ -123,13 +121,5 @@ function BookingForm() {
 
       </div>
     </PageShell>
-  )
-}
-
-export default function BookingPage() {
-  return (
-    <Suspense fallback={<LoadingScreen />}>
-      <BookingForm />
-    </Suspense>
   )
 }

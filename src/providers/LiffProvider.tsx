@@ -1,5 +1,3 @@
-'use client'
-
 import { createContext, useContext, useEffect, useState } from 'react'
 import type { Liff } from '@line/liff'
 
@@ -21,7 +19,7 @@ export default function LiffProvider({ children }: { children: React.ReactNode }
   const [loggedIn, setLoggedIn] = useState(false)
 
   useEffect(() => {
-    const liffId = process.env.NEXT_PUBLIC_LIFF_ID
+    const liffId = import.meta.env.VITE_LIFF_ID
     if (!liffId) {
       setReady(true)
       return

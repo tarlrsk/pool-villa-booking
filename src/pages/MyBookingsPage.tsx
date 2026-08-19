@@ -1,26 +1,25 @@
-'use client'
-
 import { useState, useEffect } from 'react'
-import { useRouter } from 'next/navigation'
+import { useNavigate } from 'react-router-dom'
 import { CalendarX2 } from 'lucide-react'
-import { useLiff } from '../LiffProvider'
-import { Booking } from '@/lib/types'
+import { useLiff } from '@/providers/LiffProvider'
+import type { Booking } from '@/lib/types'
 import BookingCard from '@/components/BookingCard'
 import PageShell from '@/components/PageShell'
 import PageHeader from '@/components/PageHeader'
 import LoadingScreen from '@/components/LoadingScreen'
+import { apiUrl } from '@/lib/api'
 
 export default function MyBookingsPage() {
-  const router = useRouter()
+  const navigate = useNavigate()
   const { liff, ready, loggedIn } = useLiff()
   const [bookings, setBookings] = useState<Booking[]>([])
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
     if (!ready) return
-    if (!loggedIn && process.env.NEXT_PUBLIC_LIFF_ID) return
+    if (!loggedIn && import.meta.env.VITE_LIFF_ID) return
     const token = liff?.getIDToken()
-    fetch('/api/user/bookings', { headers: { Authorization: `Bearer ${token}` } })
+    fetch(apiUrl('/api/user/bookings'), { headers: { Authorization: `Bearer ${token}` } })
       .then(r => r.json())
       .then(d => setBookings(d.bookings ?? []))
       .catch(() => {})
@@ -33,7 +32,7 @@ export default function MyBookingsPage() {
 
   return (
     <PageShell>
-      <PageHeader title="การจองของฉัน" onBack={() => router.push('/')} />
+      <PageHeader title="การจองของฉัน" onBack={() => navigate('/')} />
       <div className="px-4 py-6 space-y-4">
 
         {loading && (
@@ -47,7 +46,7 @@ export default function MyBookingsPage() {
           <div className="text-center py-16 space-y-3">
             <CalendarX2 size={56} className="text-gray-300 mx-auto" />
             <p className="text-gray-500">ยังไม่มีการจอง</p>
-            <button onClick={() => router.push('/')} className="text-indigo-600 text-sm font-medium">
+            <button onClick={() => navigate('/')} className="text-indigo-600 text-sm font-medium">
               จองเลย →
             </button>
           </div>

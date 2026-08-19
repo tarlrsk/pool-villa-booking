@@ -1,12 +1,12 @@
-'use client'
-
 import { useState, useEffect } from 'react'
-import { useRouter } from 'next/navigation'
-import BookingCalendar, { DayRate, CustomPeriod, PriceBreakdown, dateToStr, localDate } from '@/components/BookingCalendar'
-import { useLiff } from './LiffProvider'
+import { useNavigate } from 'react-router-dom'
+import BookingCalendar, { dateToStr, localDate } from '@/components/BookingCalendar'
+import type { DayRate, CustomPeriod, PriceBreakdown } from '@/components/BookingCalendar'
+import { useLiff } from '@/providers/LiffProvider'
 import { CalendarDays, RotateCcw } from 'lucide-react'
 import LoadingScreen from '@/components/LoadingScreen'
 import { DAY_HEADERS, fmtDayShort, fmtDayLong, fmtMonthShort } from '@/lib/date-format'
+import { apiUrl } from '@/lib/api'
 
 interface Selection {
   checkin: string
@@ -23,7 +23,7 @@ function formatHeaderDate(dateStr: string | null): string {
 }
 
 export default function HomePage() {
-  const router = useRouter()
+  const navigate = useNavigate()
   const { ready } = useLiff()
 
   const [loading, setLoading] = useState(true)
@@ -46,7 +46,7 @@ export default function HomePage() {
     future.setMonth(future.getMonth() + 7)
     const to = dateToStr(future)
 
-    fetch(`/api/pricing-data?from=${from}&to=${to}`)
+    fetch(apiUrl(`/api/pricing-data?from=${from}&to=${to}`))
       .then(r => r.json())
       .then(d => {
         setUnavailableDates(d.unavailableDates ?? [])
@@ -114,9 +114,9 @@ export default function HomePage() {
       <div className="shrink-0 bg-white z-10 border-b border-gray-100">
         {/* Title */}
         <div className="flex items-center justify-between px-4 pt-4 pb-2">
-          <h1 className="font-semibold text-gray-800">Pool Villa</h1>
+          <h1 className="font-semibold text-gray-800">De&apos;Day Pool Villa</h1>
           <button
-            onClick={() => router.push('/my-bookings')}
+            onClick={() => navigate('/my-bookings')}
             className="flex items-center gap-1.5 text-sm text-gray-500 border border-gray-200 rounded-lg px-3 py-1.5 hover:bg-gray-50 transition"
           >
             <CalendarDays size={15} />
@@ -180,7 +180,7 @@ export default function HomePage() {
           <button
             onClick={() =>
               selection &&
-              router.push(
+              navigate(
                 `/booking?checkin=${selection.checkin}&checkout=${selection.checkout}&total=${selection.total}&nights=${selection.nights}`
               )
             }

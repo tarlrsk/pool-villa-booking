@@ -1,4 +1,3 @@
-'use client'
 
 import { fmtDayLong, fmtMonthLong } from '@/lib/date-format'
 

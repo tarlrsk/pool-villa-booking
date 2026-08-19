@@ -1,15 +1,11 @@
-'use client'
-
-import { Suspense } from 'react'
-import { useRouter, useSearchParams } from 'next/navigation'
+import { useNavigate, useSearchParams } from 'react-router-dom'
 import { CircleCheck } from 'lucide-react'
 import PageShell from '@/components/PageShell'
 import PageHeader from '@/components/PageHeader'
-import LoadingScreen from '@/components/LoadingScreen'
 
-function ConfirmationContent() {
-  const router = useRouter()
-  const params = useSearchParams()
+export default function ConfirmationPage() {
+  const navigate = useNavigate()
+  const [params] = useSearchParams()
   const bookingId = params.get('bookingId') ?? ''
 
   return (
@@ -35,13 +31,13 @@ function ConfirmationContent() {
 
         <div className="flex gap-3">
           <button
-            onClick={() => router.push('/my-bookings')}
+            onClick={() => navigate('/my-bookings')}
             className="flex-1 bg-indigo-600 text-white py-3 rounded-xl font-medium hover:bg-indigo-700 transition"
           >
             ดูการจองของฉัน
           </button>
           <button
-            onClick={() => router.push('/')}
+            onClick={() => navigate('/')}
             className="flex-1 border border-gray-300 py-3 rounded-xl text-gray-600 hover:bg-gray-50 transition"
           >
             กลับหน้าหลัก
@@ -50,13 +46,5 @@ function ConfirmationContent() {
 
       </div>
     </PageShell>
-  )
-}
-
-export default function ConfirmationPage() {
-  return (
-    <Suspense fallback={<LoadingScreen />}>
-      <ConfirmationContent />
-    </Suspense>
   )
 }

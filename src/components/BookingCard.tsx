@@ -1,6 +1,4 @@
-'use client'
-
-import { Booking } from '@/lib/types'
+import type { Booking } from '@/lib/types'
 
 const STATUS_STYLES: Record<string, string> = {
   pending: 'bg-yellow-100 text-yellow-800',
