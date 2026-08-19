@@ -20,10 +20,17 @@ export interface DayRate {
 }
 
 export interface CustomPeriod {
+  id: number
   startDate: string  // YYYY-MM-DD
   endDate: string    // YYYY-MM-DD
   price: number
   description: string
+}
+
+export interface BlockedDate {
+  id: number
+  date: string  // YYYY-MM-DD
+  reason: string
 }
 
 export interface PriceBreakdown {
