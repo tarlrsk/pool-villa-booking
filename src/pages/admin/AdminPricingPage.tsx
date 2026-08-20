@@ -1,6 +1,8 @@
 import { useCallback, useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import AdminShell from '@/components/admin/AdminShell'
+import { useToast } from '@/components/admin/ToastProvider'
+import { useConfirm } from '@/components/admin/useConfirm'
 import { adminFetch, AdminAuthError } from '@/lib/adminApi'
 import type { DayRate, CustomPeriod } from '@/lib/types'
 
@@ -14,6 +16,8 @@ const EMPTY_PERIOD_FORM = { startDate: '', endDate: '', price: '', description: 
 
 export default function AdminPricingPage() {
   const navigate = useNavigate()
+  const notify = useToast()
+  const { confirm, dialog: confirmDialog } = useConfirm()
   const [dayRates, setDayRates] = useState<Record<string, string>>({})
   const [savingRates, setSavingRates] = useState(false)
   const [ratesSaved, setRatesSaved] = useState(false)
@@ -59,7 +63,7 @@ export default function AdminPricingPage() {
       setTimeout(() => setRatesSaved(false), 2000)
     } catch (err) {
       if (err instanceof AdminAuthError) { navigate('/admin/login'); return }
-      alert('บันทึกราคาไม่สำเร็จ')
+      notify('บันทึกราคาไม่สำเร็จ')
     } finally {
       setSavingRates(false)
     }
@@ -96,21 +100,22 @@ export default function AdminPricingPage() {
       setPeriods(data.customPeriods ?? [])
     } catch (err) {
       if (err instanceof AdminAuthError) { navigate('/admin/login'); return }
-      alert('บันทึกช่วงราคาพิเศษไม่สำเร็จ')
+      notify('บันทึกช่วงราคาพิเศษไม่สำเร็จ')
     } finally {
       setSavingPeriod(false)
     }
   }
 
   async function handleDeletePeriod(id: number) {
-    if (!confirm('ลบช่วงราคาพิเศษนี้?')) return
+    const ok = await confirm({ message: 'ลบช่วงราคาพิเศษนี้?', confirmLabel: 'ลบ', danger: true })
+    if (!ok) return
     try {
       await adminFetch(`/api/admin/custom-periods/${id}`, { method: 'DELETE' })
       setPeriods(prev => prev.filter(p => p.id !== id))
       if (editingId === id) cancelEdit()
     } catch (err) {
       if (err instanceof AdminAuthError) { navigate('/admin/login'); return }
-      alert('ลบไม่สำเร็จ')
+      notify('ลบไม่สำเร็จ')
     }
   }
 
@@ -124,6 +129,7 @@ export default function AdminPricingPage() {
 
   return (
     <AdminShell>
+      {confirmDialog}
       {error && <p className="text-red-500 text-sm mb-4">{error}</p>}
 
       {/* Day rates */}

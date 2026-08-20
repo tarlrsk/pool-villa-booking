@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import AdminShell from '@/components/admin/AdminShell'
+import { useToast } from '@/components/admin/ToastProvider'
 import { adminFetch, AdminAuthError } from '@/lib/adminApi'
 import type { Booking, BookingStatus } from '@/lib/types'
 
@@ -19,6 +20,7 @@ const STATUS_STYLES: Record<BookingStatus, string> = {
 
 export default function AdminBookingsPage() {
   const navigate = useNavigate()
+  const notify = useToast()
   const [bookings, setBookings] = useState<Booking[]>([])
   const [statusFilter, setStatusFilter] = useState<BookingStatus | ''>('')
   const [loading, setLoading] = useState(true)
@@ -52,7 +54,7 @@ export default function AdminBookingsPage() {
       setBookings(prev => prev.map(b => (b.id === bookingId ? { ...b, status } : b)))
     } catch (err) {
       if (err instanceof AdminAuthError) { navigate('/admin/login'); return }
-      alert('อัปเดตสถานะไม่สำเร็จ')
+      notify('อัปเดตสถานะไม่สำเร็จ')
     } finally {
       setUpdatingId(null)
     }

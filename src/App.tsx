@@ -9,6 +9,7 @@ import AdminBookingsPage from '@/pages/admin/AdminBookingsPage'
 import AdminPricingPage from '@/pages/admin/AdminPricingPage'
 import AdminBlockedDatesPage from '@/pages/admin/AdminBlockedDatesPage'
 import RequireAdminAuth from '@/components/admin/RequireAdminAuth'
+import ToastProvider from '@/components/admin/ToastProvider'
 
 function CustomerLayout() {
   return (
@@ -29,13 +30,22 @@ export default function App() {
           <Route path="/my-bookings" element={<MyBookingsPage />} />
         </Route>
 
-        <Route path="/admin/login" element={<AdminLoginPage />} />
-        <Route element={<RequireAdminAuth />}>
-          <Route path="/admin" element={<Navigate to="/admin/bookings" replace />} />
-          <Route path="/admin/bookings" element={<AdminBookingsPage />} />
-          <Route path="/admin/pricing" element={<AdminPricingPage />} />
-          <Route path="/admin/blocked-dates" element={<AdminBlockedDatesPage />} />
-        </Route>
+        <Route
+          path="/admin/*"
+          element={
+            <ToastProvider>
+              <Routes>
+                <Route path="login" element={<AdminLoginPage />} />
+                <Route element={<RequireAdminAuth />}>
+                  <Route index element={<Navigate to="/admin/bookings" replace />} />
+                  <Route path="bookings" element={<AdminBookingsPage />} />
+                  <Route path="pricing" element={<AdminPricingPage />} />
+                  <Route path="blocked-dates" element={<AdminBlockedDatesPage />} />
+                </Route>
+              </Routes>
+            </ToastProvider>
+          }
+        />
       </Routes>
     </BrowserRouter>
   )

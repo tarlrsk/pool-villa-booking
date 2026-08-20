@@ -2,11 +2,17 @@ import { useCallback, useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import AdminShell from '@/components/admin/AdminShell'
 import AdminBlockedDatesCalendar from '@/components/admin/AdminBlockedDatesCalendar'
+import { useToast } from '@/components/admin/ToastProvider'
+import { useConfirm } from '@/components/admin/useConfirm'
+import { usePrompt } from '@/components/admin/usePrompt'
 import { adminFetch, AdminAuthError } from '@/lib/adminApi'
 import type { BlockedDate } from '@/lib/types'
 
 export default function AdminBlockedDatesPage() {
   const navigate = useNavigate()
+  const notify = useToast()
+  const { confirm, dialog: confirmDialog } = useConfirm()
+  const { ask, dialog: promptDialog } = usePrompt()
   const [blockedDates, setBlockedDates] = useState<BlockedDate[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
@@ -30,11 +36,18 @@ export default function AdminBlockedDatesPage() {
   async function handleToggleDate(dateStr: string, existing: BlockedDate | undefined) {
     try {
       if (existing) {
-        if (!confirm(`เปิดวันที่ ${dateStr} ให้จองได้อีกครั้ง?`)) return
+        const ok = await confirm(`เปิดวันที่ ${dateStr} ให้จองได้อีกครั้ง?`)
+        if (!ok) return
         await adminFetch(`/api/admin/blocked-dates/${existing.id}`, { method: 'DELETE' })
         setBlockedDates(prev => prev.filter(b => b.id !== existing.id))
       } else {
-        const reason = prompt(`เหตุผลที่ปิดวันที่ ${dateStr} (ถ้ามี):`) ?? ''
+        const reason = await ask({
+          title: `ปิดวันที่ ${dateStr}`,
+          message: 'เหตุผลที่ปิดวันที่นี้ (ถ้ามี)',
+          placeholder: 'เช่น ปิดปรับปรุง',
+          confirmLabel: 'ปิดวันที่',
+        })
+        if (reason === null) return
         const data = await adminFetch<{ blockedDate: BlockedDate }>('/api/admin/blocked-dates', {
           method: 'POST',
           body: JSON.stringify({ date: dateStr, reason }),
@@ -43,7 +56,7 @@ export default function AdminBlockedDatesPage() {
       }
     } catch (err) {
       if (err instanceof AdminAuthError) { navigate('/admin/login'); return }
-      alert('ดำเนินการไม่สำเร็จ')
+      notify('ดำเนินการไม่สำเร็จ')
     }
   }
 
@@ -51,6 +64,8 @@ export default function AdminBlockedDatesPage() {
 
   return (
     <AdminShell>
+      {confirmDialog}
+      {promptDialog}
       {error && <p className="text-red-500 text-sm mb-4">{error}</p>}
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
